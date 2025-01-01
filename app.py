@@ -31,9 +31,14 @@ download_model()
 # Load the Vosk model
 model = Model("model")  # Path to your Vosk model
 
-
 def download_audio(youtube_url, output_file="audio.mp3"):
     """Download audio from a YouTube video using yt-dlp."""
+    cookies_path = '/etc/secrets/cookies.txt'
+
+    if not os.path.exists(cookies_path):
+        raise FileNotFoundError(f"Cookies file not found at {cookies_path}")
+    print(f"Using cookies file at: {cookies_path}")
+
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': output_file,
@@ -42,12 +47,20 @@ def download_audio(youtube_url, output_file="audio.mp3"):
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         }],
-        'cookiefile': '/etc/secrets/cookies.txt',
+        'cookiefile': cookies_path,
+        'quiet': False,  # Set to False for verbose logging
     }
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([youtube_url])
-    return output_file
 
+    try:
+        print(f"Downloading audio from: {youtube_url}")
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([youtube_url])
+        print(f"Audio downloaded successfully to: {output_file}")
+    except Exception as e:
+        print(f"Error downloading audio: {e}")
+        raise RuntimeError(f"Error downloading audio: {e}")
+
+    return output_file
 
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
@@ -86,7 +99,6 @@ def transcribe():
         return jsonify({"transcription": transcription})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

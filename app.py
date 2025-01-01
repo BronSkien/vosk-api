@@ -47,7 +47,7 @@ def download_audio(youtube_url, output_file="audio.mp3"):
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         }],
-        'cookiefile': cookies_path,
+        'cookiefile': '/etc/secrets/cookies.txt',
         'quiet': False,  # Set to False for verbose logging
     }
 

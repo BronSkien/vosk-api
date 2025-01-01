@@ -4,8 +4,31 @@ import yt_dlp
 import wave
 import json
 import os
+import requests
+import zipfile
 
 app = Flask(__name__)
+
+def download_model():
+    """Download and extract the Vosk model if not already available."""
+    model_path = "model"
+    if not os.path.exists(model_path):
+        print("Downloading Vosk model...")
+        url = "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip"  # Update to your desired model
+        response = requests.get(url, stream=True)
+        with open("model.zip", "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        with zipfile.ZipFile("model.zip", "r") as zip_ref:
+            zip_ref.extractall(".")
+        os.rename("vosk-model-small-en-us-0.15", model_path)  # Rename extracted folder to 'model'
+        os.remove("model.zip")
+        print("Model downloaded and extracted.")
+
+# Download the model if necessary
+download_model()
+
+# Load the Vosk model
 model = Model("model")  # Path to your Vosk model
 
 
